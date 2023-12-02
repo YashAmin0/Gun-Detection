@@ -3,19 +3,22 @@ from gunDetection.logger import logging
 from gunDetection.exception import AppException
 from gunDetection.components.data_ingestion import DataIngestion
 from gunDetection.components.data_validation import DataValidation
+from gunDetection.components.model_trainer import ModelTrainer
 
 from gunDetection.entity.config_entity import (DataIngestionConfig, 
-                                               DataValidationConfig)
+                                               DataValidationConfig,
+                                               ModelTrainingConfig)
 
 from gunDetection.entity.artifacts_entity import (DataIngestionArtifacts,
-                                                  DataValidationArtifacts)
+                                                  DataValidationArtifacts,
+                                                  ModelTrainingArtifacts)
 
 
 class TrainPipeline:
     def __init__(self):
         self.data_ingestion_config = DataIngestionConfig()
         self.data_validation_config = DataValidationConfig()
-
+        self.model_trainer_config = ModelTrainingConfig()
     
     def start_data_ingestion(self)-> DataIngestionArtifacts:
         try: 
@@ -63,14 +66,29 @@ class TrainPipeline:
         except Exception as e:
             raise AppException(e, sys) from e
 
-        
+    def start_model_trainer(self
+    ) -> ModelTrainingArtifacts:
+        try:
+            model_trainer = ModelTrainer(
+                model_trainer_config=self.model_trainer_config,
+            )
+            model_trainer_artifact = model_trainer.initiate_model_trainer()
+            return model_trainer_artifact
+
+        except Exception as e:
+            raise AppException(e, sys)
+    
     def run_pipeline(self) -> None:
         try:
             data_ingestion_artifact = self.start_data_ingestion()
             data_validation_artifact = self.start_data_validation(
                 data_ingestion_artifact=data_ingestion_artifact
             )
-
+            if data_validation_artifact.validation_status == True:
+                model_trainer_artifact = self.start_model_trainer()
+            
+            else:
+                raise Exception("Your data is not in correct format")
         
         except Exception as e:
             raise AppException(e, sys)

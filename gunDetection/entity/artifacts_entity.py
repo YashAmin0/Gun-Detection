@@ -9,4 +9,6 @@ class DataIngestionArtifacts:
 class DataValidationArtifacts:
     validation_status: bool
 
-    
+@dataclass
+class ModelTrainingArtifacts:
+    trained_model_file_path: str
