@@ -32,7 +32,7 @@ conda activate gun
 pip install -r requirements.txt
 ```
 
-
+### STEP 03- Run the application
 ```bash
 # Finally run the following command
 python app.py
