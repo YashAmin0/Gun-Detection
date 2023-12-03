@@ -5,27 +5,40 @@ from flask import Flask, request, jsonify, render_template,Response
 from flask_cors import CORS, cross_origin
 from gunDetection.constant.application import APP_HOST, APP_PORT
 
+
 app = Flask(__name__)
-# CORS(app)
+CORS(app)
+
+class ClientApp:
+    def __init__(self):
+        self.filename = "sample.jpg"
+
+
+
+@app.route("/train")
+def trainRoute():
+    obj = TrainPipeline()
+    obj.run_pipeline()
+    return "Training Successfull!!" 
+
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
+
+
 @app.route("/predict", methods=['POST','GET'])
 @cross_origin()
 def predictRoute():
     try:
-        image = request.files['file']
-        filename = image.filename
-        decodeImage(image, filename)
+        image = request.json['image']
+        print(image)
+        decodeImage(image, clApp.filename)
 
-        os.system("cd yolov5/ && python detect.py --weights my_model.pt --img 416 --conf 0.5 --source ../data/inputImage.jpg")
+        os.system("cd yolov5/ && python detect.py --weights best.pt --img 416 --conf 0.5 --source ../data/sample.jpg")
 
-        runs_dir = 'yolov5/runs/detect'
-        exp_dir = next(os.walk(runs_dir))[1][0]  # get latest exp folder
-        output_path = os.path.join(runs_dir, exp_dir, filename)
-        opencodedbase64 = encodeImageIntoBase64(output_path)
+        opencodedbase64 = encodeImageIntoBase64("yolov5/runs/detect/exp/sample.jpg")
         result = {"image": opencodedbase64.decode('utf-8')}
         os.system("rm -rf yolov5/runs")
 
@@ -58,4 +71,5 @@ def predictLive():
 
 
 if __name__ == "__main__":
-    app.run(debug = True)
+    clApp = ClientApp()
+    app.run(host=APP_HOST, port=APP_PORT)
